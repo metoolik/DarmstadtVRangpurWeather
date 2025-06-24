@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Comparison: Darmstadt vs Rangpur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .weather-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .city-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .city-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .weather-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .temperature {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #0984e3;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #636e72;
+            margin-bottom: 20px;
+            text-transform: capitalize;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(116, 185, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: #2d3436;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            color: #0984e3;
+        }
+
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            grid-column: span 2;
+        }
+
+        .comparison-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .comparison-item {
+            background: rgba(116, 185, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .comparison-item h4 {
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+
+        .comparison-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0984e3;
+        }
+
+        .refresh-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px 24px;
+            background: #00b894;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #00a085;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 50px 0;
+        }
+
+        .error {
+            background: #ff7675;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #636e72;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .weather-container {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-card {
+                grid-column: span 1;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .temperature {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ Weather Comparison</h1>
+            <p>Real-time weather comparison between Darmstadt, Germany and Rangpur, Bangladesh</p>
+        </div>
+
+        <button class="refresh-btn" onclick="loadWeatherData()">🔄 Refresh Weather Data</button>
+
+        <div id="loading" class="loading" style="display: none;">
+            Loading weather data...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="weather-content" style="display: none;">
+            <div class="weather-container">
+                <div class="weather-card">
+                    <div class="city-header">
+                        <div class="city-name" id="darmstadt-city">Darmstadt, Germany</div>
+                        <img id="darmstadt-icon" class="weather-icon" src="" alt="Weather icon">
+                    </div>
+                    <div class="temperature" id="darmstadt-temp">--°C</div>
+                    <div class="description" id="darmstadt-desc">--</div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feels like</span>
+                            <span class="detail-value" id="darmstadt-feels">--°C</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Humidity</span>
+                            <span class="detail-value" id="darmstadt-humidity">--%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pressure</span>
+                            <span class="detail-value" id="darmstadt-pressure">-- hPa</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Wind Speed</span>
+                            <span class="detail-value" id="darmstadt-wind">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="weather-card">
+                    <div class="city-header">
+                        <div class="city-name" id="rangpur-city">Rangpur, Bangladesh</div>
+                        <img id="rangpur-icon" class="weather-icon" src="" alt="Weather icon">
+                    </div>
+                    <div class="temperature" id="rangpur-temp">--°C</div>
+                    <div class="description" id="rangpur-desc">--</div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feels like</span>
+                            <span class="detail-value" id="rangpur-feels">--°C</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Humidity</span>
+                            <span class="detail-value" id="rangpur-humidity">--%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pressure</span>
+                            <span class="detail-value" id="rangpur-pressure">-- hPa</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Wind Speed</span>
+                            <span class="detail-value" id="rangpur-wind">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-title">📊 Weather Comparison</div>
+                    <div class="comparison-grid">
+                        <div class="comparison-item">
+                            <h4>Temperature Difference</h4>
+                            <div class="comparison-value" id="temp-diff">--°C</div>
+                        </div>
+                        <div class="comparison-item">
+                            <h4>Humidity Difference</h4>
+                            <div class="comparison-value" id="humidity-diff">--%</div>
+                        </div>
+                        <div class="comparison-item">
+                            <h4>Warmer City</h4>
+                            <div class="comparison-value" id="warmer-city">--</div>
+                        </div>
+                        <div class="comparison-item">
+                            <h4>More Humid City</h4>
+                            <div class="comparison-value" id="humid-city">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="last-updated" id="last-updated">Last updated: --</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadWeatherData() {
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const contentEl = document.getElementById('weather-content');
+
+            // Show loading
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            contentEl.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/weather');
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to fetch weather data');
+                }
+
+                // Update Darmstadt data
+                document.getElementById('darmstadt-temp').textContent = `${data.darmstadt.temperature}°C`;
+                document.getElementById('darmstadt-desc').textContent = data.darmstadt.description;
+                document.getElementById('darmstadt-feels').textContent = `${data.darmstadt.feels_like}°C`;
+                document.getElementById('darmstadt-humidity').textContent = `${data.darmstadt.humidity}%`;
+                document.getElementById('darmstadt-pressure').textContent = `${data.darmstadt.pressure} hPa`;
+                document.getElementById('darmstadt-wind').textContent = `${data.darmstadt.wind_speed} m/s`;
+                document.getElementById('darmstadt-icon').src = `https://openweathermap.org/img/wn/${data.darmstadt.icon}@2x.png`;
+
+                // Update Rangpur data
+                document.getElementById('rangpur-temp').textContent = `${data.rangpur.temperature}°C`;
+                document.getElementById('rangpur-desc').textContent = data.rangpur.description;
+                document.getElementById('rangpur-feels').textContent = `${data.rangpur.feels_like}°C`;
+                document.getElementById('rangpur-humidity').textContent = `${data.rangpur.humidity}%`;
+                document.getElementById('rangpur-pressure').textContent = `${data.rangpur.pressure} hPa`;
+                document.getElementById('rangpur-wind').textContent = `${data.rangpur.wind_speed} m/s`;
+                document.getElementById('rangpur-icon').src = `https://openweathermap.org/img/wn/${data.rangpur.icon}@2x.png`;
+
+                // Update comparison
+                const tempDiff = data.comparison.temperature_diff;
+                document.getElementById('temp-diff').textContent = `${Math.abs(tempDiff)}°C`;
+                document.getElementById('humidity-diff').textContent = `${Math.abs(data.comparison.humidity_diff)}%`;
+                document.getElementById('warmer-city').textContent = data.comparison.warmer_city;
+                document.getElementById('humid-city').textContent = data.comparison.more_humid_city;
+
+                // Update timestamp
+                document.getElementById('last-updated').textContent = `Last updated: ${data.darmstadt.timestamp}`;
+
+                // Show content
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading weather data:', error);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                errorEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Load weather data when page loads
+        document.addEventListener('DOMContentLoaded', loadWeatherData);
+
+        // Auto-refresh every 10 minutes
+        setInterval(loadWeatherData, 600000);
+    </script>
+</body>
+</html>
